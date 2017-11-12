@@ -304,6 +304,15 @@ void ObxdAudioProcessor::setParameter (int index, float newValue)
 	case PAN8:
 		synth.processPan(newValue,8);
 		break;
+	case REVERB_WET:
+		synth.processReverbWet(newValue);
+	case REVERB_WIDTH:
+		synth.processReverbWidth(newValue);
+	case REVERB_DAMP:
+		synth.processReverbDamp(newValue);
+	case REVERB_ROOMSIZE:
+		synth.processReverbRoomsize(newValue);
+
 	}
 	//DIRTY HACK
 	//This should be checked to avoid stalling on gui update
@@ -474,6 +483,14 @@ const String ObxdAudioProcessor::getParameterName (int index)
 		return S("FilterSustain");
 	case FREL:
 		return S("FilterRelease");
+	case REVERB_WET:
+		return S("ReverbWet");
+	case REVERB_WIDTH:
+		return S("ReverbWidth");
+	case REVERB_DAMP:
+		return S("ReverbDamp");
+	case REVERB_ROOMSIZE:
+		return S("ReverbRoomsize");
 	}
 	return String();
 }

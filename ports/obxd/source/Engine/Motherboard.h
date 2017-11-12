@@ -190,7 +190,7 @@ public:
 					}
 					else
 					{
-					p->NoteOn(noteNo,velocity);
+						p->NoteOn(noteNo,velocity);
 					}
 				}
 				processed = true;

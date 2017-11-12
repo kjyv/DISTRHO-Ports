@@ -70,6 +70,10 @@ public:
 		values[LEVEL_DIF]=0.3;
 		values[PORTADER]=0.3;
 		values[UDET]=0.2;
+		values[REVERB_WET]=0.0;
+		values[REVERB_DAMP]=0.1;
+		values[REVERB_ROOMSIZE]=0.1;
+		values[REVERB_WIDTH]=0.1;
 	}
 	~ObxdParams()
 	{

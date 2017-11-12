@@ -28,6 +28,7 @@
 #include "Motherboard.h"
 #include "Params.h"
 #include "ParamSmoother.h"
+#include "freeverb/revmodel.hpp"
 
 class SynthEngine
 {
@@ -36,6 +37,7 @@ private:
 	ParamSmoother cutoffSmoother;
 	ParamSmoother pitchWheelSmoother;
 	ParamSmoother modWheelSmoother;
+	revmodel reverb;
 	float sampleRate;
 	//JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynthEngine)
 public:
@@ -43,7 +45,8 @@ public:
 		cutoffSmoother(),
 		//synth = new Motherboard();
 		pitchWheelSmoother(),
-		modWheelSmoother()
+		modWheelSmoother(),
+		reverb()
 	{
 	}
 	~SynthEngine()
@@ -69,21 +72,23 @@ public:
 		procModWheelSmoothed(modWheelSmoother.smoothStep());
 
 		synth.processSample(left,right);
+		reverb.processmix(left, right, left, right, 1, 0);
 	}
 	void allNotesOff()
 	{
 		for(int i = 0 ;  i < 128;i++)
-			{
-				procNoteOff(i);
-			}
+		{
+			procNoteOff(i);
+		}
 	}
 	void allSoundOff()
 	{
 		allNotesOff();
 		for(int i = 0 ; i < Motherboard::MAX_VOICES;i++)
-			{
-				synth.voices[i].ResetEnvelope();
-			}
+		{
+			synth.voices[i].ResetEnvelope();
+		}
+		reverb.mute();
 	}
 	void sustainOn()
 	{
@@ -599,5 +604,24 @@ for(int i = 0 ; i < synth.MAX_VOICES;i++)
 		ForEachVoice(levelDetuneAmt = linsc(param,0.0,0.67));
 	}
 
+	void processReverbWet(float param)
+	{
+		reverb.setwet(param);
+		reverb.setdry(1.0f - param);
+	}
+
+	void processReverbWidth(float param)
+	{
+		reverb.setwidth(param);
+	}
 		 
+	void processReverbDamp(float param)
+	{
+		reverb.setdamp(param);
+	}
+
+	void processReverbRoomsize(float param)
+	{
+		reverb.setroomsize(param);
+	}
 };

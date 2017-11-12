@@ -16,6 +16,7 @@ package.files = {
   matchfiles (
     "../source/*.cpp",
     "../source/Gui/*.cpp",
+    "../source/Engine/freeverb/*.cpp",
     "../../../libs/juce-plugin/JucePluginMain.cpp"
   )
 }
