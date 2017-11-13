@@ -306,13 +306,25 @@ void ObxdAudioProcessor::setParameter (int index, float newValue)
 		break;
 	case REVERB_WET:
 		synth.processReverbWet(newValue);
+		break;
 	case REVERB_WIDTH:
 		synth.processReverbWidth(newValue);
+		break;
 	case REVERB_DAMP:
 		synth.processReverbDamp(newValue);
+		break;
 	case REVERB_ROOMSIZE:
 		synth.processReverbRoomsize(newValue);
-
+		break;
+	case DELAY_WET:
+		synth.processDelayWet(newValue);
+		break;
+	case DELAY_FEEDBACK:
+		synth.processDelayFeedback(newValue);
+		break;
+	case DELAY_FREQUENCY:
+		synth.processDelayFrequency(newValue);
+		break;
 	}
 	//DIRTY HACK
 	//This should be checked to avoid stalling on gui update
@@ -491,6 +503,12 @@ const String ObxdAudioProcessor::getParameterName (int index)
 		return S("ReverbDamp");
 	case REVERB_ROOMSIZE:
 		return S("ReverbRoomsize");
+    case DELAY_WET:
+        return S("DelayWet");
+    case DELAY_FEEDBACK:
+        return S("DelayFeedback");
+    case DELAY_FREQUENCY:
+        return S("DelayFrequency");
 	}
 	return String();
 }
@@ -648,7 +666,7 @@ bool ObxdAudioProcessor::getNextEvent(MidiBuffer::Iterator* iter,const int sampl
 		midiMsg = nextMidi;
 		hasMidiMessage = iter->getNextEvent(nextMidi, midiEventPos);
 		return true;
-	} 
+	}
 	return false;
 }
 

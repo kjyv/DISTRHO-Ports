@@ -3,7 +3,7 @@
 	This file is part of Obxd synthesizer.
 
 	Copyright � 2013-2014 Filatov Vadim
-	
+
 	Contact author via email :
 	justdat_@_e1.ru
 
@@ -17,7 +17,7 @@
 
 	You should have received a copy of the GPL along with this
 	program. If not, go to http://www.gnu.org/licenses/gpl.html
-	or write to the Free Software Foundation, Inc.,  
+	or write to the Free Software Foundation, Inc.,
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 	==============================================================================
  */
@@ -74,6 +74,9 @@ public:
 		values[REVERB_DAMP]=0.1;
 		values[REVERB_ROOMSIZE]=0.1;
 		values[REVERB_WIDTH]=0.1;
+		values[DELAY_WET]=0.0;
+		values[DELAY_FEEDBACK]=0.2;
+		values[DELAY_FREQUENCY]=0.1;
 	}
 	~ObxdParams()
 	{

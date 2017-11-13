@@ -17,6 +17,7 @@ package.files = {
     "../source/*.cpp",
     "../source/Gui/*.cpp",
     "../source/Engine/freeverb/*.cpp",
+    "../source/Engine/delay/*.cpp",
     "../../../libs/juce-plugin/JucePluginMain.cpp"
   )
 }

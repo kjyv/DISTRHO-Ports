@@ -3,7 +3,7 @@
 	This file is part of Obxd synthesizer.
 
 	Copyright © 2013-2014 Filatov Vadim
-	
+
 	Contact author via email :
 	justdat_@_e1.ru
 
@@ -17,7 +17,7 @@
 
 	You should have received a copy of the GPL along with this
 	program. If not, go to http://www.gnu.org/licenses/gpl.html
-	or write to the Free Software Foundation, Inc.,  
+	or write to the Free Software Foundation, Inc.,
 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 	==============================================================================
  */
@@ -40,7 +40,7 @@ enum ObxdParameters
 
 	ASPLAYEDALLOCATION,
 	PORTAMENTO,
-	UNISON,		
+	UNISON,
 	UDET,
 	OSC2_DET,
 	LFOFREQ,
@@ -94,5 +94,8 @@ enum ObxdParameters
 	REVERB_ROOMSIZE,
 	REVERB_WIDTH,
 	REVERB_DAMP,
+	DELAY_WET,
+	DELAY_FEEDBACK,
+	DELAY_FREQUENCY,
 	PARAM_COUNT,
 };
