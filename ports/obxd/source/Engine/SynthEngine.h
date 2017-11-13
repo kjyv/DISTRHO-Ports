@@ -40,10 +40,11 @@ private:
     ParamSmoother cutoffSmoother;
     ParamSmoother pitchWheelSmoother;
     ParamSmoother modWheelSmoother;
+    //JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynthEngine)
     revmodel reverb;
     Delay delay;
     float sampleRate;
-    //JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynthEngine)
+    float volume;
 public:
     SynthEngine():
         cutoffSmoother(),
@@ -53,6 +54,7 @@ public:
         reverb(),
         delay(MAX_DELAY_SAMPLES)
     {
+        synth.Volume = 1.0f;
     }
     ~SynthEngine()
     {
@@ -81,6 +83,11 @@ public:
         delay.tick(left, left);
         delay.tick(right, right);
         reverb.processmix(left, right, left, right, 1, 0);
+
+        //apply output gain (moved from synth to include effects)
+        float vol_scaled = linsc(volume, 0, 0.30);
+        left[0] *= vol_scaled;
+        right[0] *= vol_scaled;
     }
     void allNotesOff()
     {
@@ -245,7 +252,8 @@ public:
     }
     void processVolume(float param)
     {
-        synth.Volume = linsc(param,0,0.30);
+        //synth.Volume = linsc(param,0,0.30);
+        volume = param;
     }
     void processLfoFrequency(float param)
     {

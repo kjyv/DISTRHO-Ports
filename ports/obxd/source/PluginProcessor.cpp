@@ -496,19 +496,19 @@ const String ObxdAudioProcessor::getParameterName (int index)
 	case FREL:
 		return S("FilterRelease");
 	case REVERB_WET:
-		return S("ReverbWet");
+		return S("Reverb_Wet");
 	case REVERB_WIDTH:
-		return S("ReverbWidth");
+		return S("Reverb_Width");
 	case REVERB_DAMP:
-		return S("ReverbDamp");
+		return S("Reverb_Damp");
 	case REVERB_ROOMSIZE:
-		return S("ReverbRoomsize");
-    case DELAY_WET:
-        return S("DelayWet");
-    case DELAY_FEEDBACK:
-        return S("DelayFeedback");
-    case DELAY_FREQUENCY:
-        return S("DelayFrequency");
+		return S("Reverb_Roomsize");
+	case DELAY_WET:
+		return S("Delay_Wet");
+	case DELAY_FEEDBACK:
+		return S("Delay_Feedback");
+	case DELAY_FREQUENCY:
+		return S("Delay_Frequency");
 	}
 	return String();
 }
