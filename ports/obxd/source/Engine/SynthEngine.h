@@ -42,7 +42,8 @@ private:
     ParamSmoother modWheelSmoother;
     //JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynthEngine)
     revmodel reverb;
-    Delay delay;
+    Delay delay_l;
+    Delay delay_r;
     float sampleRate;
     float volume;
 public:
@@ -52,7 +53,8 @@ public:
         pitchWheelSmoother(),
         modWheelSmoother(),
         reverb(),
-        delay(MAX_DELAY_SAMPLES)
+        delay_l(MAX_DELAY_SAMPLES),
+        delay_r(MAX_DELAY_SAMPLES)
     {
         synth.Volume = 1.0f;
     }
@@ -71,7 +73,8 @@ public:
         pitchWheelSmoother.setSampleRate(sr);
         modWheelSmoother.setSampleRate(sr);
         synth.setSampleRate(sr);
-        delay.sampleRate = sr;
+        delay_l.sampleRate = sr;
+        delay_r.sampleRate = sr;
     }
     void processSample(float *left, float *right)
     {
@@ -80,8 +83,8 @@ public:
         procModWheelSmoothed(modWheelSmoother.smoothStep());
 
         synth.processSample(left, right);
-        delay.tick(left, left);
-        delay.tick(right, right);
+        delay_l.tick(left, left);
+        delay_r.tick(right, right);
         reverb.processmix(left, right, left, right, 1, 0);
 
         //apply output gain (moved from synth to include effects)
@@ -643,16 +646,19 @@ for(int i = 0 ; i < synth.MAX_VOICES;i++)
 
     void processDelayWet(float param)
     {
-        delay.setParamWet(param);
+        delay_l.setParamWet(param);
+        delay_r.setParamWet(param);
     }
 
     void processDelayFeedback(float param)
     {
-        delay.setParamFeedback(param);
+        delay_l.setParamFeedback(param);
+        delay_r.setParamFeedback(param);
     }
 
     void processDelayFrequency(float param)
     {
-        delay.setParamFrequency(param);
+        delay_l.setParamFrequency(param);
+        delay_r.setParamFrequency(param);
     }
 };
