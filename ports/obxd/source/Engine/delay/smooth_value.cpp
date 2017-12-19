@@ -19,7 +19,7 @@
 #include "utils.h"
 #include <stdio.h>
 
-#define SMOOTH_CUTOFF 0.02f
+#define SMOOTH_CUTOFF 0.5
 
 SmoothValue::SmoothValue(float value):
     current_value_(value), target_value_(value), decay_(1.0) { }

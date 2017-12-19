@@ -21,6 +21,7 @@
 Delay::Delay(int size) {
     memory_ = new Memory(size);
     smooth_frequency_value = new SmoothValue(0.0);
+    smooth_frequency_value->setBufferSize(1);
     current_feedback_ = 0.0;
     current_wet_ = 0.0;
     current_dry_ = 0.0;
