@@ -62,6 +62,7 @@ public:
     {
         synth.mlfo.hostSyncRetrigger(bpm,retrPos);
     }
+
     void setSampleRate(float sr)
     {
         sampleRate = sr;
@@ -69,8 +70,9 @@ public:
         pitchWheelSmoother.setSampleRate(sr);
         modWheelSmoother.setSampleRate(sr);
         synth.setSampleRate(sr);
-        delay.sampleRate = sr;
+        delay.setSampleRate(sr);
     }
+
     void processSample(float *left, float *right)
     {
         processCutoffSmoothed(cutoffSmoother.smoothStep());

@@ -19,17 +19,23 @@
 #define DEFAULT_PERIOD 100.0
 
 Delay::Delay(int size) {
-  memory_ = new Memory(size);
-  current_feedback_ = 0.2;
-  current_wet_ = 0.5;
-  current_dry_ = 0.5;
-  current_period_ = DEFAULT_PERIOD;
-  sampleRate = 44100;
-  paramSampleDelay = sampleRate * 0.5;
+    memory_ = new Memory(size);
+    smooth_frequency_value = new SmoothValue(0.0);
+    current_feedback_ = 0.0;
+    current_wet_ = 0.0;
+    current_dry_ = 0.0;
+    current_period_ = DEFAULT_PERIOD;
+    setSampleRate(44100);
 }
 
 Delay::~Delay() {
-  delete memory_;
+    delete memory_;
+    delete smooth_frequency_value;
+}
+
+void Delay::setSampleRate(float value){
+    sampleRate = value;
+    smooth_frequency_value->setSampleRate(sampleRate);
 }
 
 void Delay::setParamWet(float value){
@@ -38,7 +44,8 @@ void Delay::setParamWet(float value){
 }
 
 void Delay::setParamFrequency(float value){
-    paramSampleDelay = sampleRate * value;
+    //paramSampleDelay = sampleRate * value;
+    smooth_frequency_value->set(sampleRate * value);
 }
 
 void Delay::setParamFeedback(float value){
@@ -46,11 +53,7 @@ void Delay::setParamFeedback(float value){
 }
 
 void Delay::process() {
-/*  MOPO_ASSERT(inputMatchesBufferSize(kAudio));
-
-  const float* audio = input(kAudio)->source->buffer;
-  float* dest = output()->buffer;
-
+/*
   float wet = utils::clamp(input(kWet)->at(0), 0.0, 1.0);
   float new_wet = sqrt(wet);
   float new_dry = sqrt(1.0 - wet);
@@ -74,11 +77,14 @@ void Delay::process() {
 
 //process one sample
 void Delay::tick(float* audio, float* dest) {
-  float new_period = utils::clamp(paramSampleDelay, 2.0f, memory_->getSize() - 1.0f);
-  float period_inc = (new_period - current_period_);
-  current_period_ += period_inc;
-  float read = memory_->get(current_period_);
-  memory_->push(audio[0] + read * current_feedback_);
-  dest[0] = current_dry_ * audio[0] + current_wet_ * read;
-  MOPO_ASSERT(std::isfinite(dest[0]));
+    //float new_period = utils::clamp(paramSampleDelay, 2.0f, memory_->getSize() - 1.0f);
+    //
+    //float period_inc = (new_period - current_period_);
+    //current_period_ += period_inc;
+    smooth_frequency_value->tick(0);
+    current_period_ = smooth_frequency_value->value();
+    float read = memory_->get(current_period_);
+    memory_->push(audio[0] + read * current_feedback_);
+    dest[0] = current_dry_ * audio[0] + current_wet_ * read;
+    MOPO_ASSERT(std::isfinite(dest[0]));
 }

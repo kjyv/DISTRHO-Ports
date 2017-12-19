@@ -19,17 +19,18 @@
 #define DELAY_H
 
 #include "memory.h"
+#include "smooth_value.h"
 
   // A signal delay processor with wet/dry, delay time and feedback controls.
   // Handles fractional delay amounts through interpolation.
   class Delay {
     public:
-      float sampleRate;
-      float paramSampleDelay;
+      SmoothValue *smooth_frequency_value;
 
       Delay(int size);
       virtual ~Delay();
 
+      void setSampleRate(float value);
       void setParamWet(float value);
       void setParamFrequency(float value);
       void setParamFeedback(float value);
@@ -40,6 +41,7 @@
 
     protected:
       Memory* memory_;
+      float sampleRate;
       float current_feedback_;
       float current_wet_;
       float current_dry_;
