@@ -40,10 +40,12 @@ private:
     ParamSmoother cutoffSmoother;
     ParamSmoother pitchWheelSmoother;
     ParamSmoother modWheelSmoother;
-    revmodel reverb;
-    Delay delay;
-    float sampleRate;
     //JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynthEngine)
+    revmodel reverb;
+    Delay delay_l;
+    Delay delay_r;
+    float sampleRate;
+    float volume;
 public:
     SynthEngine():
         cutoffSmoother(),
@@ -51,8 +53,10 @@ public:
         pitchWheelSmoother(),
         modWheelSmoother(),
         reverb(),
-        delay(MAX_DELAY_SAMPLES)
+        delay_l(MAX_DELAY_SAMPLES),
+        delay_r(MAX_DELAY_SAMPLES)
     {
+        synth.Volume = 1.0f;
     }
     ~SynthEngine()
     {
@@ -70,7 +74,8 @@ public:
         pitchWheelSmoother.setSampleRate(sr);
         modWheelSmoother.setSampleRate(sr);
         synth.setSampleRate(sr);
-        delay.setSampleRate(sr);
+        delay_l.setSampleRate(sr);
+        delay_r.setSampleRate(sr);
     }
 
     void processSample(float *left, float *right)
@@ -80,9 +85,14 @@ public:
         procModWheelSmoothed(modWheelSmoother.smoothStep());
 
         synth.processSample(left, right);
-        delay.tick(left, left);
-        delay.tick(right, right);
+        delay_l.tick(left, left);
+        delay_r.tick(right, right);
         reverb.processmix(left, right, left, right, 1, 0);
+
+        //apply output gain (moved from synth to include effects)
+        float vol_scaled = linsc(volume, 0, 0.30);
+        left[0] *= vol_scaled;
+        right[0] *= vol_scaled;
     }
     void allNotesOff()
     {
@@ -247,7 +257,8 @@ public:
     }
     void processVolume(float param)
     {
-        synth.Volume = linsc(param,0,0.30);
+        //synth.Volume = linsc(param,0,0.30);
+        volume = param;
     }
     void processLfoFrequency(float param)
     {
@@ -637,16 +648,19 @@ for(int i = 0 ; i < synth.MAX_VOICES;i++)
 
     void processDelayWet(float param)
     {
-        delay.setParamWet(param);
+        delay_l.setParamWet(param);
+        delay_r.setParamWet(param);
     }
 
     void processDelayFeedback(float param)
     {
-        delay.setParamFeedback(param);
+        delay_l.setParamFeedback(param);
+        delay_r.setParamFeedback(param);
     }
 
     void processDelayFrequency(float param)
     {
-        delay.setParamFrequency(param);
+        delay_l.setParamFrequency(param);
+        delay_r.setParamFrequency(param);
     }
 };

@@ -95,7 +95,7 @@ function make_plugin_project(name, spec)
   package.config["Release"].target       = project.name
   package.config["Release"].objdir       = "intermediate/Release"
   package.config["Release"].defines      = { "NDEBUG=1", "CONFIGURATION=\"Release\"" }
-  package.config["Release"].buildoptions = { "-O3", "-ffast-math", "-fomit-frame-pointer", "-fvisibility=hidden", "-fvisibility-inlines-hidden" }
+  package.config["Release"].buildoptions = { "-O3", "-fomit-frame-pointer", "-fvisibility=hidden", "-fvisibility-inlines-hidden" }
   package.config["Release"].links        = {}
 
   if (not (os.getenv("NOOPTIMIZATIONS") or os.getenv("LINUX_EMBED"))) then

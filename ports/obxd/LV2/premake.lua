@@ -6,6 +6,8 @@ package = make_juce_lv2_project("Obxd")
 if (os.getenv("LINUX_EMBED")) then
 package.files = {
   matchfiles (
+    "../source/Engine/freeverb/*.cpp",
+    "../source/Engine/delay/*.cpp",
     "../source/PluginProcessor.cpp",
     "../source/msfa/*.cc",
     "../../../libs/juce-plugin/JucePluginMain.cpp"
@@ -14,10 +16,10 @@ package.files = {
 else
 package.files = {
   matchfiles (
-    "../source/*.cpp",
-    "../source/Gui/*.cpp",
     "../source/Engine/freeverb/*.cpp",
     "../source/Engine/delay/*.cpp",
+    "../source/*.cpp",
+    "../source/Gui/*.cpp",
     "../../../libs/juce-plugin/JucePluginMain.cpp"
   )
 }
