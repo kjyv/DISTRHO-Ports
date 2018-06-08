@@ -1481,7 +1481,13 @@ public:
                         if (event->body.type == uridMidiEvent)
                         {
                             const uint8* data = (const uint8*)(event + 1);
-                            midiEvents.addEvent(data, event->body.size, event->time.frames);
+                            //skip midi cc messages (parameter values are set directly from host)
+                            switch (lv2_midi_message_type(data)) {
+                                case LV2_MIDI_MSG_CONTROLLER:
+                                    break;
+                                default:
+                                    midiEvents.addEvent(data, event->body.size, event->time.frames);
+                            }
                             continue;
                         }
  #endif
