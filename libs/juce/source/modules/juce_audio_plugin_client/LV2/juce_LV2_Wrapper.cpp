@@ -68,6 +68,7 @@
 #include "includes/instance-access.h"
 #include "includes/midi.h"
 #include "includes/options.h"
+#include "includes/parameters.h"
 #include "includes/port-props.h"
 #include "includes/presets.h"
 #include "includes/state.h"
@@ -115,6 +116,42 @@ static const String& getPluginURI()
     // JucePlugin_LV2URI might be defined as a function (eg. allowing dynamic URIs based on filename)
     static const String pluginURI(JucePlugin_LV2URI);
     return pluginURI;
+}
+
+/** Queries all available plugin audio ports */
+void findMaxTotalChannels (AudioProcessor* const filter, int& maxTotalIns, int& maxTotalOuts)
+{
+    filter->enableAllBuses();
+
+   #ifdef JucePlugin_PreferredChannelConfigurations
+    int configs[][2] = { JucePlugin_PreferredChannelConfigurations };
+    maxTotalIns = maxTotalOuts = 0;
+
+    for (auto& config : configs)
+    {
+        maxTotalIns =  jmax (maxTotalIns,  config[0]);
+        maxTotalOuts = jmax (maxTotalOuts, config[1]);
+    }
+   #else
+    auto numInputBuses  = filter->getBusCount (true);
+    auto numOutputBuses = filter->getBusCount (false);
+
+    if (numInputBuses > 1 || numOutputBuses > 1)
+    {
+        maxTotalIns = maxTotalOuts = 0;
+
+        for (int i = 0; i < numInputBuses; ++i)
+            maxTotalIns  += filter->getChannelCountOfBus (true, i);
+
+        for (int i = 0; i < numOutputBuses; ++i)
+            maxTotalOuts += filter->getChannelCountOfBus (false, i);
+    }
+    else
+    {
+        maxTotalIns  = numInputBuses  > 0 ? filter->getBus (true,  0)->getMaxSupportedChannels (64) : 0;
+        maxTotalOuts = numOutputBuses > 0 ? filter->getBus (false, 0)->getMaxSupportedChannels (64) : 0;
+    }
+   #endif
 }
 
 static Array<String> usedSymbols;
@@ -506,7 +543,10 @@ const String makePresetsFile (AudioProcessor* const filter)
 void createLv2Files(const char* basename)
 {
     const ScopedJuceInitialiser_GUI juceInitialiser;
-    ScopedPointer<AudioProcessor> filter (createPluginFilterOfType (AudioProcessor::wrapperType_LV2));
+    ScopedPointer<AudioProcessor> filter(createPluginFilterOfType (AudioProcessor::wrapperType_LV2));
+
+    int maxNumInputChannels, maxNumOutputChannels;
+    findMaxTotalChannels(filter, maxNumInputChannels, maxNumOutputChannels);
 
     String binary(basename);
     String binaryTTL(binary + ".ttl");
@@ -519,7 +559,7 @@ void createLv2Files(const char* basename)
 
     std::cout << "Writing " << binary << ".ttl..."; std::cout.flush();
     std::fstream plugin(binaryTTL.toUTF8(), std::ios::out);
-    plugin << makePluginFile(filter, JucePlugin_MaxNumInputChannels, JucePlugin_MaxNumOutputChannels) << std::endl;
+    plugin << makePluginFile(filter, maxNumInputChannels, maxNumOutputChannels) << std::endl;
     plugin.close();
     std::cout << " done!" << std::endl;
 
@@ -873,8 +913,8 @@ public:
 #if JucePlugin_WantsLV2Latency
         controlPortOffset += 1;
 #endif
-        controlPortOffset += JucePlugin_MaxNumInputChannels;
-        controlPortOffset += JucePlugin_MaxNumOutputChannels;
+        controlPortOffset += filter->getTotalNumInputChannels();
+        controlPortOffset += filter->getTotalNumOutputChannels();
 
         lastProgramCount = filter->getNumPrograms();
     }
@@ -1123,8 +1163,8 @@ class JuceLv2Wrapper : public AudioPlayHead
 public:
     //==============================================================================
     JuceLv2Wrapper (double sampleRate_, const LV2_Feature* const* features)
-        : numInChans (JucePlugin_MaxNumInputChannels),
-          numOutChans (JucePlugin_MaxNumOutputChannels),
+        : numInChans (0),
+          numOutChans (0),
           bufferSize (2048),
           sampleRate (sampleRate_),
           uridMap (nullptr),
@@ -1152,6 +1192,11 @@ public:
         }
         jassert (filter != nullptr);
 
+        findMaxTotalChannels (filter, numInChans, numOutChans);
+
+        // You must at least have some channels
+        jassert (filter->isMidiEffect() || (numInChans > 0 || numOutChans > 0));
+
         filter->setPlayConfigDetails (numInChans, numOutChans, 0, 0);
         filter->setPlayHead (this);
 
@@ -1168,11 +1213,8 @@ public:
         portLatency = nullptr;
 #endif
 
-        for (int i=0; i < numInChans; ++i)
-            portAudioIns[i] = nullptr;
-        for (int i=0; i < numOutChans; ++i)
-            portAudioOuts[i] = nullptr;
-
+        portAudioIns.insertMultiple (0, nullptr, numInChans);
+        portAudioOuts.insertMultiple (0, nullptr, numOutChans);
         portControls.insertMultiple (0, nullptr, filter->getNumParameters());
 
         for (int i=0; i < filter->getNumParameters(); ++i)
@@ -1311,7 +1353,7 @@ public:
         {
             if (portId == index++)
             {
-                portAudioIns[i] = (float*)dataLocation;
+                portAudioIns.set(i, (float*)dataLocation);
                 return;
             }
         }
@@ -1320,7 +1362,7 @@ public:
         {
             if (portId == index++)
             {
-                portAudioOuts[i] = (float*)dataLocation;
+                portAudioOuts.set(i, (float*)dataLocation);
                 return;
             }
         }
@@ -1705,26 +1747,26 @@ public:
 
     uint32_t lv2SetOptions (const LV2_Options_Option* options)
     {
-        for (int j=0; options[j].key != 0; ++j)
+        for (int i=0; options[i].key != 0; ++i)
         {
-            if (options[j].key == uridMap->map(uridMap->handle, LV2_BUF_SIZE__nominalBlockLength))
+            if (options[i].key == uridMap->map(uridMap->handle, LV2_BUF_SIZE__nominalBlockLength))
             {
-                if (options[j].type == uridAtomInt)
-                    bufferSize = *(int*)options[j].value;
+                if (options[i].type == uridAtomInt)
+                    bufferSize = *(const int32_t*)options[i].value;
                 else
                     std::cerr << "Host changed nominalBlockLength but with wrong value type" << std::endl;
             }
-            else if (options[j].key == uridMap->map(uridMap->handle, LV2_BUF_SIZE__maxBlockLength) && ! usingNominalBlockLength)
+            else if (options[i].key == uridMap->map(uridMap->handle, LV2_BUF_SIZE__maxBlockLength) && ! usingNominalBlockLength)
             {
-                if (options[j].type == uridAtomInt)
-                    bufferSize = *(int*)options[j].value;
+                if (options[i].type == uridAtomInt)
+                    bufferSize = *(const int32_t*)options[i].value;
                 else
                     std::cerr << "Host changed maxBlockLength but with wrong value type" << std::endl;
             }
-            else if (options[j].key == uridMap->map(uridMap->handle, LV2_CORE__sampleRate))
+            else if (options[i].key == uridMap->map(uridMap->handle, LV2_PARAMETERS__sampleRate))
             {
-                if (options[j].type == uridAtomDouble)
-                    sampleRate = *(double*)options[j].value;
+                if (options[i].type == uridAtomFloat)
+                    sampleRate = *(const float*)options[i].value;
                 else
                     std::cerr << "Host changed sampleRate but with wrong value type" << std::endl;
             }
@@ -1908,8 +1950,8 @@ private:
 #if JucePlugin_WantsLV2Latency
     float* portLatency;
 #endif
-    float* portAudioIns[JucePlugin_MaxNumInputChannels];
-    float* portAudioOuts[JucePlugin_MaxNumOutputChannels];
+    Array<float*> portAudioIns;
+    Array<float*> portAudioOuts;
     Array<float*> portControls;
 
     uint32 bufferSize;
